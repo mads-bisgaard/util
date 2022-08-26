@@ -1,6 +1,6 @@
 import os
 
-def rename(folder1, folder2):
+def rename_files(folder1, folder2):
     """
     Renames all files in folder2 whose name also appears in folder1.
     If file named "thisfile" appears in both folder1 and folder2 then the name of the 
