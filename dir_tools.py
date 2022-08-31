@@ -26,6 +26,18 @@ def rename_files(folder1, folder2):
     common_file_names = folder1_set.intersection(folder2_set)
     all_file_names = folder1_set.union(folder2_set)
     
+    choice = None
+    msg = f'Rename {len(common_file_names)} files in {folder2}? [Yes/No]'
+    while choice is None:
+        s = input(msg)
+        if s.lower() in {'y', 'yes'}:
+            choice = True
+        elif s.lower() in {'n', 'no'}:
+            choice = False
+        else:
+            msg = 'Input must be either "Yes","Y", "No" or "N"'
+    assert not choice, 'You must accept the renaming for it to take place'
+    
     for f in common_file_names:
         name, ext = os.path.splitext(f)
         new_name = f
