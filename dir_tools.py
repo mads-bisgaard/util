@@ -2,6 +2,7 @@ import os
 import shutil
 from PIL import Image
 import pyheif
+from tqdm import tqdm
 
 def rename_files(folder1, folder2):
     """
@@ -46,30 +47,45 @@ def heic_to_jpg(folder, new_dir_name=None):
         new_dir_name (string):  Optional name of new folder. Default is <folder>_all_jpegs
     """
     assert os.path.isdir(folder), f'{folder} must be the path to an existing directory'
-    folder = os.path.abspath(folder)
-    
+    folder = os.path.abspath(folder)    
     root, dir_name = os.path.split(folder)
     if new_dir_name is None:
-        new_folder = os.path.join(root, dir_name, '_all_jpgs')
-    else:
-        new_folder = os.path.join(root, new_dir_name)
+        new_dir_name = dir_name + '_all_jpgs'
+    
+    new_folder = os.path.join(root, new_dir_name)
     assert not os.path.exists(new_folder), f'{new_folder} already exists as a path. Either remove it or provide a name for a new folder'
     os.mkdir(new_folder)
     
-    for name in os.path.listdir(folder):
-        pth = os.path.join(folder, name)
-        new_pth = os.path.join(new_folder, name)
-        
-        if not (name.endswith('.heic') or name.endswith('.heif')):
+    
+    print(f'Converting/copying contents')
+    print(f'{folder} -> {new_folder}')
+    f_ct = 0
+    heic_ct = 0
+    
+    for file_name in tqdm(os.listdir(folder)):
+        f_ct += 1
+        pth = os.path.join(folder, file_name)
+
+        if not (file_name.lower().endswith('.heic') or file_name.lower().endswith('.heif')):
+            new_pth = os.path.join(new_folder, file_name)
             if os.path.isfile(pth):
                 shutil.copyfile(pth, new_pth)
             elif os.path.isdir(pth):
                 shutil.copytree(pth, new_pth)
         else:
-            heif_file = pyheif.read(pth)
-            image = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, "raw", heif_file.mode, heif_file.stride)
+            heic_ct += 1
+            name, _ = os.path.splitext(file_name)
+            new_pth = os.path.join(new_folder, name + '.JPG')
+            try:
+                heif_file = pyheif.read(pth)
+                image = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, "raw", heif_file.mode, heif_file.stride)
+            except Exception as ex:
+                print(f'Could not convert {pth} from heif to jpg')
+                raise ex
             image.save(new_pth, "JPEG")
     
+    print(f'Copied {f_ct-heic_ct} elements')
+    print(f'Converted {heic_ct} .HEIC/.HEIF files .JPG files')
     
     
     
