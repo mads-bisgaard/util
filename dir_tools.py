@@ -27,7 +27,7 @@ def rename_files(folder1, folder2):
     all_file_names = folder1_set.union(folder2_set)
     
     choice = None
-    msg = f'Rename {len(common_file_names)} files in {folder2}? [Yes/No]'
+    msg = f'Rename {len(common_file_names)} files in {folder2}? [Yes/No]\n'
     while choice is None:
         s = input(msg)
         if s.lower() in {'y', 'yes'}:
@@ -35,10 +35,12 @@ def rename_files(folder1, folder2):
         elif s.lower() in {'n', 'no'}:
             choice = False
         else:
-            msg = 'Input must be either "Yes","Y", "No" or "N"'
-    assert not choice, 'You must accept the renaming for it to take place'
+            msg = 'Input must be either "Yes","Y", "No" or "N"\n'
+    assert choice, 'You must accept the renaming for it to take place'
     
-    for f in common_file_names:
+    n_common_files = len(common_file_names)
+    print(f'Renaming {n_common_files} files in {folder2}')
+    for id, f in enumerate(common_file_names):
         name, ext = os.path.splitext(f)
         new_name = f
         ct = 1
@@ -46,7 +48,7 @@ def rename_files(folder1, folder2):
             new_name = name + '(' + str(ct) + ')' + ext
             ct += 1
         os.rename(os.path.join(folder2,f), os.path.join(folder2,new_name))
-        print(f'Renamed {os.path.join(folder2,f)} to {os.path.join(folder2,new_name)}')
+        print(f'Renamed {f} to {new_name} ({id+1}/{n_common_files})')
         
             
             
