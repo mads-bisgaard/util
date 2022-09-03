@@ -48,6 +48,7 @@ def rename_files(folder1, folder2):
             new_name = name + '(' + str(ct) + ')' + ext
             ct += 1
         os.rename(os.path.join(folder2,f), os.path.join(folder2,new_name))
+        all_file_names.add(new_name)
         print(f'Renamed {f} to {new_name} ({id+1}/{n_common_files})')
         
             
