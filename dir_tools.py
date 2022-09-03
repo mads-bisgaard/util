@@ -3,7 +3,114 @@ import shutil
 from PIL import Image
 import pyheif
 from tqdm import tqdm
+from utils import is_jpeg
 
+class Picture:
+    """
+    Wrapper for comparing pictures only via pixels. 
+    """
+    def __init__(self, pth):
+        self.__pth = pth
+        im = Image.open(pth)
+        self.__hash = hash(im.tobytes())
+        self.__set_copy = None
+        self.__similar_pictures = []
+    
+    def __hash__(self):
+        return self.__hash
+    
+    def __eq__(self, other):
+        self_im = Image.open(self.pth)
+        other_im = Image.open(other.pth)
+        self_bts = self_im.tobytes()
+        other_bts = other_im.tobytes()
+        res = self_bts == other_bts
+        if res:
+            self.__set_copy = other
+            other.__set_copy = self
+        return res
+    
+    def find_set_representative(self, pic_set):
+        self.__set_copy = None
+        if self in pic_set:
+            return self.__set_copy
+        else:
+            return None
+    
+    @property
+    def pth(self):
+        return self.__pth
+    
+    @property
+    def similar_pictures(self):
+        return self.__similar_pictures
+        
+    def add_similar_picture(self, pic):
+        self.__similar_pictures.append(pic)
+        
+
+def report_duplicates(jpeg_set):
+    """
+    Helper fcn
+    """
+    for pic in jpeg_set:
+        if len(pic.similar_pictures) > 0:
+            msg1 = '"' + pic.pth  + '"' + ' has the following duplicates: \n'
+            msg2 = ''
+            for elm in pic.similar_pictures:
+                msg2 += '\t' + '"' + elm.pth + '"' + '\n'
+            print(msg1 + msg2)
+
+def find_duplicates(folder1, folder2=None):
+    """
+    Determine duplicate pictures (pixel-wise). When only a single path is passed, it checks if there are duplicate pictures
+    within that directory and prints a report. If a second directory is passed it is instead determined which pictures in the 
+    second directory are also in the first.
+
+    Args:
+        folder1 (String): Path to first directory
+        folder2 (String, optional): Path to second directory. Defaults to None.
+    """
+    assert os.path.isdir(folder1), f'{folder1} is not a directory'
+    folder1 = os.path.abspath(folder1)
+    
+    if folder2 is None:
+        jpeg_set = set()
+        print('Comparing JPEG files...')
+        for pth in tqdm(os.listdir(folder1)):
+            pth = os.path.join(folder1, pth)
+            if is_jpeg(pth):
+                pic = Picture(pth)
+                if pic in jpeg_set:
+                    set_rep = pic.find_set_representative(jpeg_set)
+                    set_rep.add_similar_picture(pic)
+                else:
+                    jpeg_set.add(pic)
+        if len(jpeg_set) == 0:
+            print('No duplicates were found')
+        else:
+            report_duplicates(jpeg_set)
+    else:
+        assert os.path.isdir(folder2), f'{folder2} is not a directory'
+        folder2 = os.path.abspath(folder2)
+        print(f'Computing distincts JPEG files in {folder1}...')
+        jpegs1 = set()
+        for elm in tqdm(os.listdir(folder1)):
+            elm = os.path.join(folder1,elm)
+            if is_jpeg(elm):
+                jpegs1.add( Picture(elm) )
+        
+        print(f'Checking for duplicate JPEG files in {folder2}...')
+        for elm in tqdm(os.listdir(folder2)):
+            elm = os.path.join(folder2,elm)
+            if is_jpeg(elm):
+                pic = Picture(elm)
+                if pic in jpegs1:
+                    set_rep = pic.find_set_representative(jpegs1)
+                    set_rep.add_similar_picture(pic)
+        report_duplicates(jpegs1)
+        
+    
 def rename_files(folder1, folder2):
     """
     Renames all files in folder2 whose name also appears in folder1.
@@ -103,4 +210,5 @@ def heic_to_jpg(folder, new_dir_name=None):
     print(f'Converted {heic_ct} .HEIC/.HEIF files .JPG files')
     
     
-    
+if __name__ == '__main__':
+    find_duplicates('/home/madsbisgaard/Downloads/1.8.2020-3.9.2022')
