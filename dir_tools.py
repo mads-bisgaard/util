@@ -53,13 +53,19 @@ def report_duplicates(jpeg_set):
     """
     Helper fcn
     """
+    print('Report')
+    print('='*20)
+    nsims = 0
     for pic in jpeg_set:
         if len(pic.similar_pictures) > 0:
+            nsims += 1
             msg1 = '"' + pic.pth  + '"' + ' has the following duplicates: \n'
             msg2 = ''
             for elm in pic.similar_pictures:
                 msg2 += '\t' + '"' + elm.pth + '"' + '\n'
             print(msg1 + msg2)
+    if nsims == 0:
+        print('No duplicates were found')
 
 def find_duplicates(folder1, folder2=None):
     """
