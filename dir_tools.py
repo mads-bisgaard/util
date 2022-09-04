@@ -1,5 +1,6 @@
 import os
 import shutil
+from tokenize import Name
 from PIL import Image
 import pyheif
 from tqdm import tqdm
@@ -170,6 +171,34 @@ def rename_files(folder1, folder2):
         print(f'Renamed {f} to {new_name} ({id+1}/{n_common_files})')
         
             
+def check_gthumb_comment_dir(folder):
+    """
+    Check which files are missing in the '.comments' directory in a gthumbs directory 
+
+    Args:
+        folder (String): Gthumb directory
+    """
+    assert os.path.isdir(folder), f'{folder} must be a valid directory path'
+    folder = os.path.abspath(folder)
+    
+    comments_folder = os.path.join(folder,'.comments')
+    if not os.path.isdir(comments_folder):
+        raise Exception(f'{folder} does not contain a .comments subdirectory')
+
+    comments_file_names = set( )
+    for file_name in os.listdir(comments_folder):
+        if os.path.isfile(os.path.join(comments_folder,file_name)):
+            name, ext = os.path.splitext(file_name)
+            if ext == '.xml':
+                comments_file_names.add(name)
+
+    for file_name in os.listdir(folder):
+        pth = os.path.join(folder, file_name)
+        if os.path.isfile(pth):
+            if not file_name in comments_file_names:
+                print(f'{file_name} does not have a corresponding match in the .comments directory')
+            
+
             
 def heic_to_jpg(folder, new_dir_name=None):
     """
