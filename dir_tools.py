@@ -140,6 +140,10 @@ def rename_files(folder1, folder2):
     common_file_names = folder1_set.intersection(folder2_set)
     all_file_names = folder1_set.union(folder2_set)
     
+    if len(common_file_names) == 0:
+        print('No duplicate file names were found')
+        return
+    
     choice = None
     msg = f'Rename {len(common_file_names)} files in {folder2}? [Yes/No]\n'
     while choice is None:
