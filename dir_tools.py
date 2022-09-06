@@ -12,10 +12,14 @@ class Picture:
     """
     def __init__(self, pth):
         self.__pth = pth
-        im = Image.open(pth)
-        self.__hash = hash(im.tobytes())
         self.__set_copy = None
         self.__similar_pictures = []
+        try:
+            im = Image.open(pth)
+            self.__hash = hash(im.tobytes())
+        except Exception as e:
+            print(f'File path: {pth}')
+            raise e
     
     def __hash__(self):
         return self.__hash
